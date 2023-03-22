@@ -1,20 +1,12 @@
 import * as SQLite from 'expo-sqlite';
 
 export function getDbConnection() {
-    const cx = SQLite.openDatabase('tbUsers.db');
+    const cx = SQLite.openDatabase('dbPizzeria.db');
     return cx;
 }
 
-export async function createTable() {
+export async function createTable(query) {
     return new Promise((resolve, reject) => {
-        const query = `CREATE TABLE IF NOT EXISTS tbUsers
-        (
-            id text not null primary key,
-            name text not null,
-            email text not null,
-            code text not null,
-            password text not null      
-        )`;
         let dbCx = getDbConnection();        
         dbCx.transaction(tx => {
             tx.executeSql(query);
@@ -29,7 +21,36 @@ export async function createTable() {
 };
 
 
+export function getProduct() {
 
+    return new Promise((resolve, reject) => {
+        let dbCx = getDbConnection();
+        dbCx.transaction(tx => {
+            let query = 'select * from tbProducts where ProductCode=?';
+            tx.executeSql(query, [productCode],
+                (tx, records) => {
+                    var productReturnList = []
+
+                    for (let n = 0; n < records.rows.length; n++) {
+                        let obj = {
+                            Id: records.rows.item(n).Id,
+                            ProductCode: records.rows.item(n).ProductCode,
+                            Description: records.rows.item(n).Description,
+                            UnitPrice: records.rows.item(n).UnitPrice
+                        }
+                        productReturnList.push(obj);
+                    }
+                    resolve(productReturnList);
+                })
+        },
+            error => {
+                console.log(error);
+                resolve([]);
+            }
+        )
+    }
+    );
+}
 
 export function getAllUsers() {
 
@@ -63,14 +84,13 @@ export function getAllUsers() {
     );
 }
 
-export function insertUser(user) {
+export function insertRecord(recordFields, query) {
 
     return new Promise((resolve, reject) => {
-        let query = 'insert into tbUsers (id, code, name, email, password) values (?,?,?,?,?)';
         let dbCx = getDbConnection();
 
         dbCx.transaction(tx => {
-            tx.executeSql(query, [user.id, user.code, user.name, user.email, user.password],
+            tx.executeSql(query, recordFields,
                 (tx, result) => {
                     resolve(result.rowsAffected > 0);
                 })
@@ -85,13 +105,12 @@ export function insertUser(user) {
 }
 
 
-export function updateUser(user) {
+export function updateRecord(recordFields, query) {
     return new Promise((resolve, reject) => {
-        let query = 'update tbUsers set name=?, email=?, password=? where id=?';
         let dbCx = getDbConnection();
 
         dbCx.transaction(tx => {
-            tx.executeSql(query, [user.name, user.email, user.password, user.id],
+            tx.executeSql(query, recordFields,
                 (tx, resultado) => {
                     resolve(resultado.rowsAffected > 0);
                 })
@@ -107,13 +126,11 @@ export function updateUser(user) {
 
 
 
-export function deleteUserDB(id) {
+export function deleteRecordDB(query, recordId) {
     return new Promise((resolve, reject) => {
-        let query = 'delete from tbUsers where id=?';
         let dbCx = getDbConnection();
-        console.log('userId => ' + id)
         dbCx.transaction(tx => {
-            tx.executeSql(query, [id],
+            tx.executeSql(query, [recordId],
                 (tx, resultado) => {
                     resolve(resultado.rowsAffected > 0);
                 })
