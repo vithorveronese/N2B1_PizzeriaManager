@@ -1,0 +1,16 @@
+1.	(até 06 pontos) Crie uma aplicação React Native que possua as seguintes características: 
+    Salve todos os dados deste projeto em SQLite.
+    Utilize React Native e Expo para desenvolver a aplicação móvel.
+    As telas e componentes devem ser estilizados.
+    A aplicação deve ser constituída de múltiplas telas.
+    Detalhes da aplicação que deve ser desenvolvida: 
+        Crie uma aplicação móvel para gerenciamento de pizzaria.  A aplicação deve permitir:
+            CRUD de Produtos 	
+                Código, Descrição e Preço unitário.
+            Tela de venda, permitindo:
+                Listar os produtos disponíveis.
+                Selecionar um produto e colocar no carrinho de compras.
+                Efetivar a venda dos produtos, registrando o código da venda, os produtos vendidos e a data da venda.
+
+2. (até 02 pontos) Crie uma tela para listar todas as vendas, exibindo os dados da venda e os produtos vendidos.  Exiba o valor total da venda.
+3. (até 02 pontos) Desenvolver uma tela para CRUD de categorias, permitindo filtrar os produtos por categoria durante a venda. Para isso você terá também que adicionar o campo de categoria ao cadastro de produtos. 
