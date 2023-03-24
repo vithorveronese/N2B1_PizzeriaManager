@@ -2,6 +2,10 @@ import { react, useState } from 'react';
 import styles from './styles';
 import { View, Text, TouchableOpacity } from 'react-native';
 
+import {
+    deleteTables
+  } from './services/dbservice';
+
 export default function Home({navigation}) {
 
     return (
@@ -18,10 +22,10 @@ export default function Home({navigation}) {
                 <Text style={styles.textoBotao}>Comércio de produtos</Text>
             </TouchableOpacity>
 
-            {/* <TouchableOpacity style={styles.botao}
-                onPress={()=> navigation.navigate('Tela3', {corFundoTela:"#f58c9f"})}   >
-                <Text style={styles.textoBotao}>Tabuada do 3</Text>
-            </TouchableOpacity> */}
+            <TouchableOpacity style={styles.botao}
+                onPress={()=> navigation.navigate('ListOrders', {corFundoTela:"#f58c9f"})}   >
+                <Text style={styles.textoBotao}>Histórico de compras</Text>
+            </TouchableOpacity>
         </View>
     )
 }

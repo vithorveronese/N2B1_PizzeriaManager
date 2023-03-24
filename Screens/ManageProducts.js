@@ -1,6 +1,6 @@
 import {react, useState, useEffect} from 'react' ;
 import styles from  './styles';
-import {View, Text, TouchableOpacity, TextInput, Alert} from 'react-native';
+import {View, Text, TouchableOpacity, TextInput, Alert, Keyboard} from 'react-native';
 
 import {
     createTable,
@@ -24,8 +24,8 @@ export default function Products({navigation}){
           tabelasCriadas = true;
           let query = `CREATE TABLE IF NOT EXISTS tbProducts
             (
-              Id text not null primary key,
-              ProductCode text not null,
+                Id text not null,
+              ProductCode text not null primary key,
               Description text not null,
               UnitPrice text not null          
             )`;
@@ -43,13 +43,20 @@ export default function Products({navigation}){
         }, []
     );
 
+    function cleanScreen() {
+        setId(undefined);
+        setProductCode('');
+        setDescription('');
+        setUnitPrice('');
+    }
+
     async function saveInfo() {
         let newRecord = id == undefined;
         let query = '';
         let fieldsList = [];
   
         let product = {
-            id: newRecord ? createUniqueId() : id,
+            Id: newRecord ? createUniqueId() : id,
             ProductCode: productCode,
             Description: descripton,
             UnitPrice: unitPrice
@@ -57,15 +64,16 @@ export default function Products({navigation}){
 
         try {
             if (newRecord) {
-                fieldsList = [product.id, product.ProductCode, product.Description, product.UnitPrice]
-                query = 'INSERT INTO tbProducts (Id, ProductCode, Description, UnitPrice) values (?,?,?,?)';            
+                fieldsList = [product.Id, product.ProductCode, product.Description, product.UnitPrice];
+                query = 'INSERT INTO tbProducts (Id, ProductCode, Description, UnitPrice) values (?, ?,?,?)';            
                 await insertRecord(fieldsList, query);
             }
             else {
-                fieldsList = [product.Description, product.UnitPrice, product.id]
-                query = 'UPDATE tbProducts set Description=?, UnitPrice=? WHERE id=?';
+                fieldsList = [product.Description, product.UnitPrice, product.ProductCode]
+                query = 'UPDATE tbProducts set Description=?, UnitPrice=? WHERE ProductCode=?';
                 await updateRecord(fieldsList, query);
             }
+            cleanScreen();
             Alert.alert("Salvo com sucesso!!!");
         }
         catch (e) {
@@ -74,23 +82,22 @@ export default function Products({navigation}){
     }
 
     async function loadRecord() {
-        console.log('test1')
         if (productCode.length != 0) {
-            console.log('test2')
             try {
-                console.log('test3')
                 let product = await getProduct(productCode);
-                console.log('test4')
-                setId(product.Id);
-                setProductCode(product.ProductCode);
-                setDescription(product.Description);
-                setUnitPrice(product.UnitPrice);
+                if (product.length > 0) {
+                    setId(product[0].Id);
+                    setDescription(product[0].Description);
+                    setUnitPrice(product[0].UnitPrice);
+                }
+                else Alert.alert('Produto não encontrado!');
             }
             catch (e) {
                 Alert.alert(e);
             }
         }
         else Alert.alert('Insira o código do produto para buscá-lo');
+        Keyboard.dismiss();
     }
 
     function deleteProduct() {
@@ -114,6 +121,7 @@ export default function Products({navigation}){
         try {
             let query = 'delete from tbProducts where id=?';
             await deleteRecordDB(query, [Id]);
+            cleanScreen();
         }
         catch (e) {
             Alert.alert(e);
@@ -145,6 +153,7 @@ export default function Products({navigation}){
             </TextInput>
             <View style={myStyle.passwordContainer}>
                 <TouchableOpacity style={myStyle.buttom} onPress={() => saveInfo()}><Text>Salvar</Text></TouchableOpacity>
+                <TouchableOpacity style={myStyle.buttom} onPress={() => cleanScreen()}><Text>Novo Produto</Text></TouchableOpacity>
                 <TouchableOpacity style={myStyle.buttom} onPress={() => loadRecord()}><Text>Carregar</Text></TouchableOpacity>
                 <TouchableOpacity style={myStyle.buttom} onPress={() => deleteProduct()}><Text>Apagar</Text></TouchableOpacity>
             </View>

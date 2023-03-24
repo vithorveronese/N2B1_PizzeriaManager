@@ -5,6 +5,7 @@ import { createAppContainer, createSwitchNavigator } from 'react-navigation';
 import Home from './home';
 import Products from './Screens/ManageProducts';
 import Orders from './Screens/ManageOrders';
+import ListOrders from './Screens/ListOrders';
 //import Tela3 from './Telas/tela3';
 
 const Routes = createAppContainer(
@@ -12,6 +13,7 @@ const Routes = createAppContainer(
     Home,
     Products,
     Orders,
+    ListOrders
   })
 );
 
