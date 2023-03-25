@@ -20,7 +20,6 @@ export async function createTable(query) {
     });
 };
 
-
 export function getProduct(productCode) {
 
     return new Promise((resolve, reject) => {
@@ -189,7 +188,6 @@ export function insertRecord(recordFields, query) {
     );
 }
 
-
 export function updateRecord(recordFields, query) {
     return new Promise((resolve, reject) => {
         let dbCx = getDbConnection();
@@ -208,8 +206,6 @@ export function updateRecord(recordFields, query) {
     }
     );
 }
-
-
 
 export function deleteRecordDB(query, recordId) {
     return new Promise((resolve, reject) => {
