@@ -1,6 +1,6 @@
 import {react, useState, useEffect} from 'react' ;
-import styles from  './styles';
 import {View, Text, TouchableOpacity, TextInput, Alert, Keyboard} from 'react-native';
+import styles from  './styles';
 
 import {
     createTable,
@@ -8,7 +8,7 @@ import {
     getProduct,
     insertRecord,
     updateRecord,
-  } from '../services/dbservice';
+  } from '../src/services/dbservice';
 
 export default function Products({navigation}){    
     let myStyle = styles(navigation.state.params);
@@ -19,29 +19,9 @@ export default function Products({navigation}){
     const [descripton, setDescription] = useState('');  
     const [unitPrice, setUnitPrice] = useState('');
 
-    async function processingUseEffect() {
-        if (!createdTable) {
-          tabelasCriadas = true;
-          let query = `CREATE TABLE IF NOT EXISTS tbProducts
-            (
-                Id text not null,
-              ProductCode text not null primary key,
-              Description text not null,
-              UnitPrice text not null          
-            )`;
-          await createTable(query);
-        }
-    }
-
     function createUniqueId() {
         return Date.now().toString(36) + Math.random().toString(36).slice(0, 2);
     }
-
-    useEffect(
-        () => {
-            processingUseEffect();
-        }, []
-    );
 
     function cleanScreen() {
         setId(undefined);

@@ -10,7 +10,7 @@ import {
     insertRecord,
     getProducts,
     deleteTables
-  } from '../services/dbservice';
+  } from '../src/services/dbservice';
 
 export default function Orders({navigation}){    
     let myStyle = styles(navigation.state.params);

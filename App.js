@@ -1,12 +1,9 @@
-import { StatusBar } from 'expo-status-bar';
-import { Text, View } from 'react-native';
 import { createAppContainer, createSwitchNavigator } from 'react-navigation';
 
-import Home from './home';
-import Products from './Screens/ManageProducts';
-import Orders from './Screens/ManageOrders';
-import ListOrders from './Screens/ListOrders';
-//import Tela3 from './Telas/tela3';
+import Home from './src/Screens/Home';
+import Products from './src/Screens/ManageProducts';
+import Orders from './src/Screens/ManageOrders';
+import ListOrders from './src/Screens/ListOrders';
 
 const Routes = createAppContainer(
   createSwitchNavigator({

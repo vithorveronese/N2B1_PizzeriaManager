@@ -6,7 +6,7 @@ import Orders from '../components/Orders';
 import {
     getOrders,
     getOrderItens
-  } from '../services/dbservice';
+  } from '../src/services/dbservice';
 
 export default function ListOrders({navigation}){    
     let myStyle = styles(navigation.state.params);

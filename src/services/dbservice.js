@@ -5,23 +5,7 @@ export function getDbConnection() {
     return cx;
 }
 
-export async function createTable(query) {
-    return new Promise((resolve, reject) => {
-        let dbCx = getDbConnection();        
-        dbCx.transaction(tx => {
-            tx.executeSql(query);
-            resolve(true); 
-        },
-            error => {
-                console.log(error);
-                resolve(false);
-            }
-        );
-    });
-};
-
 export function getProduct(productCode) {
-
     return new Promise((resolve, reject) => {
         let dbCx = getDbConnection();
         dbCx.transaction(tx => {
