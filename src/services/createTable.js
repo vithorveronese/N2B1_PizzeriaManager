@@ -45,11 +45,12 @@ export async function createProductsTable(query) {
 
 export async function createSalesTable(query) {
   return new Promise((resolve, reject) => {
-      let dbCx = getDbConnection();        
+      let dbCx = getDbConnection();
       dbCx.transaction(tx => {
           tx.executeSql(`CREATE TABLE IF NOT EXISTS sales
           (
             id Integer not null primary key AUTOINCREMENT,
+            value decimal not null,
             date text not null
           )`);
           resolve(true); 

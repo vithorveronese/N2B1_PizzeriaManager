@@ -35,12 +35,12 @@ export function getProduct(productCode) {
     );
 }
 
-export function getProducts() {
+export function getProducts(categoryId) {
     return new Promise((resolve, reject) => {
         let dbCx = getDbConnection();
         dbCx.transaction(tx => {
-            let query = 'select * from products';
-            tx.executeSql(query, [],
+            let query = categoryId ? 'select * from products where category_id=?' : 'select * from products';
+            tx.executeSql(query, categoryId ? [categoryId] : [],
                 (tx, records) => {
                     var productReturnList = []
 
@@ -67,7 +67,6 @@ export function getProducts() {
 }
 
 export function getCategories() {
-
     return new Promise((resolve, reject) => {
         let dbCx = getDbConnection();
         dbCx.transaction(tx => {
@@ -85,6 +84,36 @@ export function getCategories() {
                         categoriesReturnList.push(obj);
                     }
                     resolve(categoriesReturnList);
+                })
+        },
+            error => {
+                console.log(error);
+                resolve([]);
+            }
+        )
+    }
+    );
+}
+
+export function getAllSales() {
+    return new Promise((resolve, reject) => {
+        let dbCx = getDbConnection();
+        dbCx.transaction(tx => {
+            let query = "SELECT s.id AS sale_id, s.value, s.date, GROUP_CONCAT(p.name, ', ') AS products FROM products p INNER JOIN sales_product sp ON p.id = sp.product_id INNER JOIN sales s ON sp.sale_id = s.id GROUP BY s.id";
+            tx.executeSql(query, [],
+                (tx, records) => {
+                    var allSales = []
+
+                    for (let n = 0; n < records.rows.length; n++) {
+                        let obj = {
+                            id: records.rows.item(n).sale_id,
+                            value: records.rows.item(n).value,
+                            date: records.rows.item(n).date,
+                            products: records.rows.item(n).products
+                        }
+                        allSales.push(obj);
+                    }
+                    resolve(allSales);
                 })
         },
             error => {
@@ -191,7 +220,7 @@ export function insertRecord(recordFields, query) {
         dbCx.transaction(tx => {
             tx.executeSql(query, recordFields,
                 (tx, result) => {
-                    resolve(result.rowsAffected > 0);
+                    resolve(result.insertId);
                 })
         },
             error => {

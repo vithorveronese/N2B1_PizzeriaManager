@@ -1,199 +1,216 @@
 import {react, useState, useEffect} from 'react' ;
+import {View, Text, ScrollView, Alert, Keyboard, Image} from 'react-native';
+import { Checkbox, Button, Card, DataTable } from 'react-native-paper';
+import DropDown from "react-native-paper-dropdown";
+import Icon from 'react-native-vector-icons/FontAwesome';
 import styles from  './styles';
-import {View, Text, TouchableOpacity, TextInput, Alert, Keyboard, ScrollView} from 'react-native';
-import Products from '../components/Products';
-import { AntDesign } from "@expo/vector-icons";
-
+import myStyles from  '../styles';
 
 import {
-    createTable,
-    insertRecord,
+    getCategories,
     getProducts,
-    deleteTables
+    insertRecord,
+    getLastIdInsert,
   } from '../services/dbservice';
 
-export default function Orders({navigation}){    
-    let myStyle = styles(navigation.state.params);
-    let createdTable = false;
-    
-    const [orderCode, setOrderCode] = useState('');
-    const [orderTotal, setOrderTotal] = useState(0);
+export default function Orders({navigation}){  
+    const [totalSale, setTotalSale] = useState(0.00);
+    const [productsSale, setProductsSale] = useState([]);
+    const [updateChecks, setUpdateChecks] = useState(true);
+
     const [productList, setProductList] = useState([]);
-    const [cartList, setCartList] = useState([]);
+    const [categoriesList, setCategoriesList] = useState([]);
+    const [showDropDown, setShowDropDown] = useState(false);
+    const [productCategoryId, setProductCategoryId] = useState('');
 
-    useEffect(
-        () => {
-            processingUseEffect();
-        }, []
-    );
+    const [sortAscending, setSortAscending] = useState(true);
+    const [page, setPage] = useState(0);
+    const [numberOfItemsPerPageList] = useState([5, 10, 20, 200]);
+    const [itemsPerPage, onItemsPerPageChange] = useState(numberOfItemsPerPageList[0]);
+    const sortedItems = productList
+        .slice()
+        .sort((item1, item2) =>
+        (sortAscending ? item1.id < item2.id : item2.id < item1.id)
+            ? 1
+            : -1
+        );
+    const from = page * itemsPerPage;
+    const to = Math.min((page + 1) * itemsPerPage, productList.length);
 
-    async function processingUseEffect() {
-        if (!createdTable) {
-            tabelasCriadas = true;
-            let queryOrders = `CREATE TABLE IF NOT EXISTS tbOrders
-                (
-                Id text not null primary key,
-                Date text DEFAULT (date('now')),
-                OrderCode text not null
-            )`;
+    useEffect(() => {
+        getProductsList();
+        cleanScreen();
+    }, []);
 
-            let queryOrderItens = `CREATE TABLE IF NOT EXISTS tbOrderItens
-                (
-                Id Integer not null primary key AUTOINCREMENT,
-                ProductId text not null,
-                TotalPrice decimal not null,
-                OrderId text not null
-            )`;
-                    
-            await createTable(queryOrders);
-            await createTable(queryOrderItens);
-        }
-        await loadProducts();
-    }
-
-    function createUniqueId() {
-        return Date.now().toString(36) + Math.random().toString(36).slice(0, 2);
-    }
-
-    useEffect(
-        () => {
-            processingUseEffect();
-        }, []
-    );
+    useEffect(() => {
+        getProductsList();
+    }, [productCategoryId]);
 
     function cleanScreen() {
-        setOrderTotal(0);
-        setCartList([]);
-        setOrderCode('');
+        setTotalSale(0.00);
+        setProductsSale([]);
+        setUpdateChecks(true);
+        setProductCategoryId('');
     }
 
     async function saveInfo() {
-        let queryOrder = 'INSERT INTO tbOrders (Id, OrderCode) values (?, ?)';
-        let queryOrderItens = 'INSERT INTO tbOrderItens (ProductId, TotalPrice, OrderId) values (?, ?, ?)';
-  
-        let order = {
-            Id: createUniqueId(),
-            OrderCode: orderCode
-        };
-        let fieldsListOrder = [order.Id, order.OrderCode];
+        if( productsSale.length < 1 ){
+            Alert.alert("Selecione pelo menos 1 produto!!!");
+        } else {
+            try {
+                const date = new Date()
+                const onlyTime = date.toLocaleTimeString();
+                const fullDate = date.toLocaleDateString();
+                fieldsList = [`${onlyTime} ${fullDate}`, totalSale];
+                query = 'INSERT INTO sales (date, value) values (?,?)';
+                const lastId = await insertRecord(fieldsList, query);
 
-        try {
-            await insertRecord(fieldsListOrder, queryOrder);
-            cartList.forEach(async e => {
-                await insertRecord([e.ProductCode, e.UnitPrice, order.Id], queryOrderItens);
-            });
-            cleanScreen();
-            Alert.alert("Salvo com sucesso!!!");
-        }
-        catch (e) {
-            Alert.alert(e);
-        }
-        await loadProducts();
-    }
+                productsSale.forEach(function (item, indice) {
+                    query = 'INSERT INTO sales_product (sale_id, product_id) values (?,?)';
+                    insertRecord([lastId, item], query);
+                });
 
-    async function loadProducts() {
-        try {
-            let products = await getProducts();
-            products.forEach(element => {
-                element.Style = myStyle.cardUser,
-                element.Quantity = 0
-            });
-            setProductList(products);
-        }
-        catch (e) {
-            Alert.alert(e);
-        }
-    }
-
-    function addProductToCart(product, index) {
-            let auxCart =[...cartList];
-            let auxProd = product;
-            auxProd.Style = myStyle.selectedCardUser;
-            if (!cartList.includes(auxProd)) {
-                let currentPrice = auxProd.UnitPrice.length > 0 ? parseFloat(auxProd.UnitPrice) : 0;
-                auxCart.push(auxProd);
-                setCartList(auxCart);
-                setOrderTotal(orderTotal + currentPrice);
+                cleanScreen();
+                Alert.alert(`Pedido realizado com sucesso #${lastId}!!!`);
             }
-            else Alert.alert('Produto já adicionado')
-    }
-
-    function removeProductFromCart(product) {
-        const indexToRemove = cartList.findIndex(item => item.ProductCode === product.ProductCode);
-        if (indexToRemove !== -1) {
-            const newList = [...cartList];
-            newList.splice(indexToRemove, 1);
-            setCartList(newList);
-            let auxProd = product;
-            auxProd.Style = myStyle.cardUser;
-            let currentPrice = auxProd.UnitPrice.length > 0 ? parseFloat(auxProd.UnitPrice) : 0;
-            let total = orderTotal - currentPrice;
-            let finalTotal = (total <= 0) ? 0 : total;
-            setOrderTotal(finalTotal);
-            Alert.alert('Produto removido')
+            catch (e) {
+                Alert.alert(e);
+            }
+            Keyboard.dismiss();
+            getProductsList();
         }
-        else Alert.alert('Produto não está no carrinho')
     }
 
-    async function deleteVerything() {
-        console.log('1')
-        await deleteTables('DROP TABLE IF EXISTS tbProducts;');
-        console.log('2')
-        await deleteTables('DROP TABLE IF EXISTS tbOrders;');
-        console.log('3')
-        await deleteTables('DROP TABLE IF EXISTS tbOrderItens;');
-        console.log('4')
+    async function getProductsList() {
+        try {
+            const products = await getProducts(productCategoryId);
+            setProductList(products);
+    
+            const categories = await getCategories();
+            const categoriesDropDown = [];
+            categories.forEach(function (item, indice) {
+                categoriesDropDown.push({ label: item.name, value: item.id });
+            });
+            setCategoriesList(categoriesDropDown);
+        } catch (e) {
+            Alert.alert(e);
+        }
+        Keyboard.dismiss();
+    }
+
+    function getCategoryById (id) {
+        const findCat = categoriesList.find((x, i) => x.value == id);
+        return findCat?.label || '';
+    }
+
+    function getProductSaleById (id) {
+        const findCat = productsSale.find((x, i) => x == id);
+        return findCat;
+    }
+
+    function updateTotalPrice (oldProductsSale) {
+        let oldTotalPrice = 0;
+        oldProductsSale.forEach(function (item, indice) {
+            const product = productList.find((x, i) => x.id == item);
+            oldTotalPrice = oldTotalPrice + product.price;
+        });
+        setTotalSale(oldTotalPrice.toFixed(2));
+    }
+
+    async function productItemToSale (id) {
+        setUpdateChecks(false);
+        const oldProductsSale = productsSale;
+        const findCat = await oldProductsSale.find((x, i) => x == id);
+
+        if( findCat ) {
+            const index = oldProductsSale.indexOf(id);
+            oldProductsSale.splice(index, 1);
+        } else {
+            oldProductsSale.push(id);
+        }
+
+        updateTotalPrice(oldProductsSale);
+        setProductsSale(oldProductsSale);
+        setUpdateChecks(true);
     }
 
     return (
-        <View style={myStyle.container}>
-            <Text>Código do pedido</Text>
-            <TextInput 
-                keyboardType="number-pad"
-                onChangeText={(text) => setOrderCode(text)}
-                value={orderCode}
-                style={myStyle.textInput}>
-            </TextInput>
-            <Text>Total: </Text>
-            <Text>R${orderTotal}</Text>
-            <View style={myStyle.passwordContainer}>
-                <TouchableOpacity style={myStyle.buttom} onPress={() => saveInfo()}><Text>Salvar pedido</Text></TouchableOpacity>
-            </View>
-            <ScrollView style={[myStyle.listaUsuarios]}>
-            {productList.map((productObj, index) => (
-                <View 
-                    style={productObj.Style} 
-                    key={index.toString()}>
-
-                    <Text>  </Text>
-                    <Text style={myStyle.textoCard}>
-                        {productObj.ProductCode.padStart(3, "0")}
-                    </Text>
-                    <Text>         </Text>
-                    <Text style={myStyle.textoCard}>{productObj.Description}</Text>
-                    <Text>         </Text>
-                    <Text style={myStyle.textoCard}>Preço: R${productObj.UnitPrice}</Text>
-
-                    <View style={myStyle.areaBotoesCard}>
-                        <TouchableOpacity style={myStyle.botaoEditar} onPress={() => addProductToCart(productObj, index)}>
-                            <AntDesign name="plus" size={24} color="black" />
-                        </TouchableOpacity>
-                        <Text></Text>
-                        <TouchableOpacity style={myStyle.botaoApagar} onPress={() => removeProductFromCart(productObj)}>
-                            <AntDesign name="delete" size={24} color="red" />
-                        </TouchableOpacity>
+        <ScrollView contentContainerStyle={styles.container}>
+            <Image source={require('../../assets/background.jpg')} style={myStyles.imgBg}/>
+            <View>
+                <View style={myStyles.row}>
+                    <Text style={{ backgroundColor: '#fff', fontSize: 24, fontWeight: 'bold' }}>Total do Pedido: R$ {totalSale}</Text>
+                </View>
+                <View style={styles.row}>
+                    <Button icon="account-cash" mode="contained" onPress={()=> saveInfo()}>
+                        Finalizar Compra
+                    </Button>
+                </View>
+                <View style={myStyles.row}>
+                    <View style={{ width: '55%' }}>
+                        <DropDown
+                            label={"* Categorias"}
+                            mode={"outlined"}
+                            visible={showDropDown}
+                            showDropDown={() => setShowDropDown(true)}
+                            onDismiss={() => setShowDropDown(false)}
+                            value={productCategoryId}
+                            setValue={setProductCategoryId}
+                            list={categoriesList}
+                        />
+                    </View>
+                    <View style={{ width: '40%' }}>
+                        <Button mode="outlined" onPress={()=> setProductCategoryId('')} style={{ backgroundColor: '#efefef' }}>
+                            limpar filtro
+                        </Button>
                     </View>
                 </View>
-            ))}
-      </ScrollView>
-            <TouchableOpacity style={myStyle.botao}
-                onPress={()=> navigation.navigate('Home')} >
-                <Text style={myStyle.textoBotao}>Voltar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.botao}
-                onPress={()=> deleteVerything()}>
-                <Text style={myStyle.textoBotao}>Apagar tabelas</Text>
-            </TouchableOpacity>
-        </View>
+            </View>
+
+            <Card style={{ margin: 10 }}>
+                <DataTable>
+                <DataTable.Header>
+                    <DataTable.Title></DataTable.Title>
+                    <DataTable.Title style={styles.first}>Nome</DataTable.Title>
+                    <DataTable.Title>Descrição</DataTable.Title>
+                    <DataTable.Title>Preço</DataTable.Title>
+                    <DataTable.Title>Categoria</DataTable.Title>
+                </DataTable.Header>
+
+                {sortedItems.slice(from, to).map((item) => (
+                    <DataTable.Row key={item.id}>
+                        <DataTable.Cell>
+                            <Checkbox
+                                status={ updateChecks && getProductSaleById(item.id) ? 'checked' : 'unchecked'}
+                                onPress={() => productItemToSale(item.id)}
+                            />
+                        </DataTable.Cell>
+                        <DataTable.Cell style={styles.first}>{item.name}</DataTable.Cell>
+                        <DataTable.Cell>{item.description}</DataTable.Cell>
+                        <DataTable.Cell>{item.price}</DataTable.Cell>
+                        <DataTable.Cell>{getCategoryById(item.categoryId)}</DataTable.Cell>
+                    </DataTable.Row>
+                ))}
+
+                <DataTable.Pagination
+                    page={page}
+                    numberOfPages={Math.ceil(sortedItems.length / itemsPerPage)}
+                    onPageChange={(page) => setPage(page)}
+                    label={`${from + 1}-${to} of ${sortedItems.length}`}
+                    numberOfItemsPerPageList={numberOfItemsPerPageList}
+                    numberOfItemsPerPage={itemsPerPage}
+                    onItemsPerPageChange={onItemsPerPageChange}
+                    showFastPaginationControls
+                    selectPageDropdownLabel={'Resultados p/ pag.'}
+                />
+                </DataTable>
+            </Card>
+
+            <View style={styles.row}>
+                <Button icon="backspace-outline" mode="contained" onPress={()=> navigation.navigate('Home')}>
+                    Voltar
+                </Button>
+            </View>
+        </ScrollView>
     )
 }
