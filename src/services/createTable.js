@@ -8,7 +8,7 @@ export async function createCategoriesTable(query) {
           (
             id Integer not null primary key AUTOINCREMENT,
             name text not null,
-            description text,
+            description text
           )`);
           resolve(true); 
       },
@@ -31,7 +31,7 @@ export async function createProductsTable(query) {
             description text,
             price decimal not null,
             category_id integer not null,
-            FOREIGN KEY(category_id) REFERENCES categories(id),
+            FOREIGN KEY(category_id) REFERENCES categories(id)
           )`);
           resolve(true); 
       },
@@ -50,7 +50,7 @@ export async function createSalesTable(query) {
           tx.executeSql(`CREATE TABLE IF NOT EXISTS sales
           (
             id Integer not null primary key AUTOINCREMENT,
-            date text not null,
+            date text not null
           )`);
           resolve(true); 
       },
@@ -72,7 +72,7 @@ export async function createSalesProductTable(query) {
             sale_id integer not null,
             product_id integer not null,
             FOREIGN KEY(sale_id) REFERENCES sales(id),
-            FOREIGN KEY(product_id) REFERENCES products(id),
+            FOREIGN KEY(product_id) REFERENCES products(id)
           )`);
           resolve(true); 
       },

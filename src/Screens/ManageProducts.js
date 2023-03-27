@@ -8,7 +8,7 @@ import {
     getProduct,
     insertRecord,
     updateRecord,
-  } from '../src/services/dbservice';
+  } from '../services/dbservice';
 
 export default function Products({navigation}){    
     let myStyle = styles(navigation.state.params);

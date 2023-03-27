@@ -4,10 +4,24 @@ const styles = StyleSheet.create(
     {
         container:{            
             marginTop: StatusBar.currentHeight,
-            flex:1,
             backgroundColor: "#FFF",
-            justifyContent: 'flex-start',
+            flex: 1,
+            justifyContent: 'center',
             alignItems: 'center',
+        },
+        imgBg: {
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            top: 0,
+            left: 0
+        },
+        row: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            alignItems: 'center',
+            margin: 8,
         },
         titulo:{
             fontSize: 40,
