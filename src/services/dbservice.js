@@ -36,24 +36,55 @@ export function getProduct(productCode) {
 }
 
 export function getProducts() {
-
     return new Promise((resolve, reject) => {
         let dbCx = getDbConnection();
         dbCx.transaction(tx => {
-            let query = 'select * from tbProducts';
+            let query = 'select * from products';
             tx.executeSql(query, [],
                 (tx, records) => {
                     var productReturnList = []
 
                     for (let n = 0; n < records.rows.length; n++) {
                         let obj = {
-                            ProductCode: records.rows.item(n).ProductCode,
-                            Description: records.rows.item(n).Description,
-                            UnitPrice: records.rows.item(n).UnitPrice
+                            id: records.rows.item(n).id,
+                            name: records.rows.item(n).name,
+                            description: records.rows.item(n).description,
+                            price: records.rows.item(n).price,
+                            categoryId: records.rows.item(n).category_id,
                         }
                         productReturnList.push(obj);
                     }
                     resolve(productReturnList);
+                })
+        },
+            error => {
+                console.log(error);
+                resolve([]);
+            }
+        )
+    }
+    );
+}
+
+export function getCategories() {
+
+    return new Promise((resolve, reject) => {
+        let dbCx = getDbConnection();
+        dbCx.transaction(tx => {
+            let query = 'select * from categories';
+            tx.executeSql(query, [],
+                (tx, records) => {
+                    var categoriesReturnList = []
+
+                    for (let n = 0; n < records.rows.length; n++) {
+                        let obj = {
+                            id: records.rows.item(n).id,
+                            name: records.rows.item(n).name,
+                            description: records.rows.item(n).description
+                        }
+                        categoriesReturnList.push(obj);
+                    }
+                    resolve(categoriesReturnList);
                 })
         },
             error => {

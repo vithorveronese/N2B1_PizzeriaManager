@@ -23,14 +23,6 @@ const styles = StyleSheet.create(
             alignItems: 'center',
             margin: 8,
         },
-        titulo:{
-            fontSize: 40,
-            color: 'blue',
-            fontWeight: 'bold',
-            textDecorationLine: 'underline',            
-            marginBottom: 30,
-            textAlign: 'center',
-        },
         botao:{
             height: 60,
             width: '70%',

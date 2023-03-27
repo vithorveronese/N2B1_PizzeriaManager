@@ -187,7 +187,7 @@ export default function Orders({navigation}){
             ))}
       </ScrollView>
             <TouchableOpacity style={myStyle.botao}
-                onPress={()=> navigation.navigate('Home',{corFundoTela:"#73facb"})} >
+                onPress={()=> navigation.navigate('Home')} >
                 <Text style={myStyle.textoBotao}>Voltar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.botao}

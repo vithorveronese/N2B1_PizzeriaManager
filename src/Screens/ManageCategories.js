@@ -1,162 +1,216 @@
 import {react, useState, useEffect} from 'react' ;
 import styles from  './styles';
-import {View, Text, TouchableOpacity, TextInput, Alert, Keyboard} from 'react-native';
+import myStyles from  '../styles';
+import {View, Text, ScrollView, Alert, Keyboard, Image} from 'react-native';
+import { TextInput, Button, Card, DataTable } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 import {
-    createTable,
     deleteRecordDB,
-    getProduct,
+    getCategories,
     insertRecord,
     updateRecord,
   } from '../services/dbservice';
 
-export default function Categories({navigation}){    
-    let myStyle = styles(navigation.state.params);
-    let createdTable = false;
-    
+export default function Categories({navigation}){  
     const [id, setId] = useState();
-    const [categoryCode, setCategoryCode] = useState('');  
-    const [categoryName, setCategoryName] = useState('');  
+    const [categoryName, setCategoryName] = useState(''); 
+    const [categoryDescription, setCategoryDescription] = useState('');  
+    const [categoriesList, setCategoriesList] = useState([]);
+    const [writeMode, setWriteMode] = useState(true);
 
-    async function processingUseEffect() {
-        if (!createdTable) {
-          tabelasCriadas = true;
-          let query = `CREATE TABLE IF NOT EXISTS tbCategories
-            (
-              Id text not null,
-              CategoryCode text not null primary key,
-              CategoryName text not null
-            )`;
-          await createTable(query);
-        }
-    }
+    const [sortAscending, setSortAscending] = useState(true);
+    const [page, setPage] = useState(0);
+    const [numberOfItemsPerPageList] = useState([5, 10, 20, 200]);
+    const [itemsPerPage, onItemsPerPageChange] = useState(numberOfItemsPerPageList[0]);
+    const sortedItems = categoriesList
+        .slice()
+        .sort((item1, item2) =>
+        (sortAscending ? item1.id < item2.id : item2.id < item1.id)
+            ? 1
+            : -1
+        );
+    const from = page * itemsPerPage;
+    const to = Math.min((page + 1) * itemsPerPage, categoriesList.length);
 
-    function createUniqueId() {
-        return Date.now().toString(36) + Math.random().toString(36).slice(0, 2);
-    }
-
-    useEffect(
-        () => {
-            processingUseEffect();
-        }, []
-    );
+    useEffect(() => {
+        getCategoriesList();
+        cleanScreen();
+    }, [])
 
     function cleanScreen() {
         setId(undefined);
-        setCategoryCode('');
         setCategoryName('');
+        setCategoryDescription('');
+        setWriteMode(false);
     }
 
     async function saveInfo() {
-        let newRecord = id == undefined;
-        let query = '';
-        let fieldsList = [];
-  
-        let category = {
-            Id: newRecord ? createUniqueId() : id,
-            CategoryCode: categoryCode,
-            CategoryName: categoryName,
-        };
-
-        try {
-            if (newRecord) {
-                fieldsList = [category.Id, category.ProductCode, category.Description];
-                query = 'INSERT INTO tbCategories (Id, CategoryCode, CategoryName) values (?, ?,?)';            
-                await insertRecord(fieldsList, query);
-            }
-            else {
-                fieldsList = [product.Description, product.UnitPrice, product.ProductCode]
-                query = 'UPDATE tbCategories set Description=? WHERE ProductCode=?';
-                await updateRecord(fieldsList, query);
-            }
-            cleanScreen();
-            Alert.alert("Salvo com sucesso!!!");
-        }
-        catch (e) {
-            Alert.alert(e);
-        }
-    }
-
-    async function loadRecord() {
-        if (productCode.length != 0) {
+        if( !categoryName || !categoryDescription ){
+            Alert.alert("Todos os campos são obrigatorios!!!");
+        } else {
             try {
-                let product = await getProduct(productCode);
-                if (product.length > 0) {
-                    setId(product[0].Id);
-                    setDescription(product[0].Description);
-                    setUnitPrice(product[0].UnitPrice);
+                if (!id) {
+                    fieldsList = [categoryName, categoryDescription];
+                    query = 'INSERT INTO categories (name, description) values (?, ?)';            
+                    await insertRecord(fieldsList, query);
+                } else {
+                    fieldsList = [categoryName, categoryDescription, id]
+                    query = 'UPDATE categories set name=?, description=? WHERE id=?';
+                    await updateRecord(fieldsList, query);
                 }
-                else Alert.alert('Produto não encontrado!');
+                cleanScreen();
+                Alert.alert("Salvo com sucesso!!!");
             }
             catch (e) {
                 Alert.alert(e);
             }
+            Keyboard.dismiss();
+            getCategoriesList();
         }
-        else Alert.alert('Insira o código do produto para buscá-lo');
+    }
+
+    async function prepareUpdate(id, name, description) {
+        setId(id);
+        setCategoryName(name);
+        setCategoryDescription(description);
+        setWriteMode(true);
+    }
+
+    async function getCategoriesList() {
+        try {
+            let categories = await getCategories();
+            setCategoriesList(categories);
+        } catch (e) {
+            Alert.alert(e);
+        }
         Keyboard.dismiss();
     }
 
-    function deleteProduct() {
-        if (id.length != 0) {
-            Alert.alert('Atenção', 'Confirma a remoção do produto?',
-            [
-                {
-                  text: 'Sim',
-                  onPress: () => reallyDeleteProduct(),
-                },
-                {
-                  text: 'Não',
-                  style: 'cancel',
-                }
-            ]);
-        }
-        else Alert.alert('Apenas é possível excluir um produto já inserido')
-    }
-
-    async function reallyDeleteProduct() {
+    async function reallyDeleteProduct(id) {
         try {
-            let query = 'delete from tbProducts where id=?';
-            await deleteRecordDB(query, [Id]);
+            let query = 'delete from categories where id=?';
+            await deleteRecordDB(query, id);
             cleanScreen();
-        }
-        catch (e) {
+        } catch (e) {
             Alert.alert(e);
         }
-
+        getCategoriesList();
     }
 
     return (
-        <View style={myStyle.container}>
-            <Text>Código do produto</Text>
-            <TextInput 
-                keyboardType="number-pad"
-                onChangeText={(text) => setProductCode(text)}
-                value={productCode}
-                style={myStyle.textInput}>
-            </TextInput>
-            <Text>Descrição</Text>
-            <TextInput 
-                value={descripton}
-                onChangeText={(text) => setDescription(text)}
-                style={myStyle.textInput}>
-            </TextInput>
-            <Text>Preço unitário</Text>
-            <TextInput 
-                keyboardType="number-pad"
-                onChangeText={(text) => setUnitPrice(text)}
-                value={unitPrice} 
-                style={myStyle.textInput}>
-            </TextInput>
-            <View style={myStyle.passwordContainer}>
-                <TouchableOpacity style={myStyle.buttom} onPress={() => saveInfo()}><Text>Salvar</Text></TouchableOpacity>
-                <TouchableOpacity style={myStyle.buttom} onPress={() => cleanScreen()}><Text>Novo Produto</Text></TouchableOpacity>
-                <TouchableOpacity style={myStyle.buttom} onPress={() => loadRecord()}><Text>Carregar</Text></TouchableOpacity>
-                <TouchableOpacity style={myStyle.buttom} onPress={() => deleteProduct()}><Text>Apagar</Text></TouchableOpacity>
+        <ScrollView contentContainerStyle={styles.container}>
+            <Image source={require('../../assets/background.jpg')} style={myStyles.imgBg}/>
+            { writeMode ? (
+                <View>
+                    <View style={myStyles.row}>
+                        <Text style={{ backgroundColor: '#fff', fontSize: 24, fontWeight: 'bold' }}>Preencha os campos</Text>
+                    </View>
+                    <View style={myStyles.row}>
+                        <View style={styles.inputContainerStyle}>
+                            <TextInput
+                                label={
+                                    <Text>
+                                        <Text style={{ color: 'red' }}>
+                                            *
+                                        </Text>{' '}
+                                        Nome da categoria
+                                    </Text>
+                                }
+                                style={styles.noPaddingInput}
+                                placeholder="Digite o nome, obrigatorio"
+                                value={categoryName}
+                                error={!categoryName}
+                                onChangeText={(categoryName) => setCategoryName(categoryName)}
+                            />
+                        </View>
+                    </View>
+                    <View style={myStyles.row}>
+                        <View style={styles.inputContainerStyle}>
+                            <TextInput
+                                label={
+                                    <Text>
+                                        <Text style={{ color: 'red' }}>
+                                            *
+                                        </Text>{' '}
+                                        Descrição da categoria
+                                    </Text>
+                                }
+                                style={styles.noPaddingInput}
+                                placeholder="Digite a descrição, obrigatorio"
+                                value={categoryDescription}
+                                error={!categoryDescription}
+                                onChangeText={(categoryDescription) => setCategoryDescription(categoryDescription)}
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.row}>
+                        <Button icon="content-save-all-outline" mode="contained" onPress={()=> saveInfo()}>
+                            Salvar
+                        </Button>
+                    </View>
+                </View>
+            ) : (
+                <View>
+                    <View style={myStyles.row}>
+                        <Text style={{ backgroundColor: '#fff', fontSize: 24, fontWeight: 'bold' }}>Categorias</Text>
+                    </View>
+                    <View style={styles.row}>
+                        <Button icon="content-save-all-outline" mode="contained" onPress={()=> setWriteMode(true)}>
+                            Adicionar novo
+                        </Button>
+                    </View>
+                </View>
+            ) }
+
+            <Card style={{ margin: 10 }}>
+                <DataTable>
+                <DataTable.Header>
+                    <DataTable.Title
+                        sortDirection={sortAscending ? 'ascending' : 'descending'}
+                        onPress={() => setSortAscending(!sortAscending)}
+                        >
+                    Id
+                    </DataTable.Title>
+                    <DataTable.Title style={styles.first}>Nome</DataTable.Title>
+                    <DataTable.Title>Descrição</DataTable.Title>
+                    <DataTable.Title>Editar</DataTable.Title>
+                    <DataTable.Title>Excluir</DataTable.Title>
+                </DataTable.Header>
+
+                {sortedItems.slice(from, to).map((item) => (
+                    <DataTable.Row key={item.id}>
+                        <DataTable.Cell>{item.id}</DataTable.Cell>
+                        <DataTable.Cell style={styles.first}>{item.name}</DataTable.Cell>
+                        <DataTable.Cell>{item.description}</DataTable.Cell>
+                        <DataTable.Cell onPress={()=> prepareUpdate(item.id, item.name, item.description)}>
+                            <Icon name="pencil" size={18} color="#000" />
+                        </DataTable.Cell>
+                        <DataTable.Cell onPress={()=> reallyDeleteProduct(item.id)}>
+                            <Icon name="trash" size={18} color="#000" />
+                        </DataTable.Cell>
+                    </DataTable.Row>
+                ))}
+
+                <DataTable.Pagination
+                    page={page}
+                    numberOfPages={Math.ceil(sortedItems.length / itemsPerPage)}
+                    onPageChange={(page) => setPage(page)}
+                    label={`${from + 1}-${to} of ${sortedItems.length}`}
+                    numberOfItemsPerPageList={numberOfItemsPerPageList}
+                    numberOfItemsPerPage={itemsPerPage}
+                    onItemsPerPageChange={onItemsPerPageChange}
+                    showFastPaginationControls
+                    selectPageDropdownLabel={'Resultados p/ pag.'}
+                />
+                </DataTable>
+            </Card>
+
+            <View style={styles.row}>
+                <Button icon="backspace-outline" mode="contained" onPress={()=> navigation.navigate('Admin')}>
+                    Voltar
+                </Button>
             </View>
-            <TouchableOpacity style={myStyle.botao}
-                onPress={()=> navigation.navigate('Home',{corFundoTela:"#73facb"})} >
-                <Text style={myStyle.textoBotao}>Voltar</Text>
-            </TouchableOpacity>
-        </View>
+        </ScrollView>
     )
 }

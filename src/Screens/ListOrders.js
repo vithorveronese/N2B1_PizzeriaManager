@@ -47,7 +47,7 @@ export default function ListOrders({navigation}){
             <Orders style={"with: 100%"} ordersList={orders}></Orders>
             
             <TouchableOpacity style={myStyle.botao}
-                onPress={()=> navigation.navigate('Home',{corFundoTela:"#73facb"})} >
+                onPress={()=> navigation.navigate('Home')} >
                 <Text style={myStyle.textoBotao}>Voltar</Text>
             </TouchableOpacity>
         </View>

@@ -19,32 +19,25 @@ export default function Home({navigation}) {
     }, []);
 
     return (
-        // <ImageBackground source={require('../../assets/background.jpg')} resizeMode="stretch" styles={styles.imgBg}>
         <ScrollView contentContainerStyle={styles.container}>
-            <Image source={require('../../assets/background.jpg')} style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}/>
-                <View style={styles.row}>
-                    <Avatar.Image
-                        source={require('../../assets/logopizza.png')}
-                        size={120}
-                    />
-                </View>
+            <Image source={require('../../assets/background.jpg')} style={styles.imgBg}/>
+            <View style={styles.row}>
+                <Avatar.Image
+                    source={require('../../assets/logopizza.png')}
+                    size={120}
+                />
+            </View>
 
-                <View style={styles.row}>
-                    <Button icon="cart-minus" mode="contained" onPress={()=> navigation.navigate('Products',{corFundoTela:"#73facb"})}>
-                        Gerenciar produtos
-                    </Button>
-                </View>
-                <View style={styles.row}>
-                    <Button icon="cart-minus" mode="contained" onPress={()=> navigation.navigate('Orders', {corFundoTela:"#f2c64e"})}>
-                        Comércio de produtos
-                    </Button>
-                </View>
-                <View style={styles.row}>
-                    <Button icon="cart-minus" mode="contained" onPress={()=> navigation.navigate('ListOrders', {corFundoTela:"#f58c9f"})}>
-                        Histórico de compras
-                    </Button>
-                </View>
+            <View style={styles.row}>
+                <Button icon="cart-minus" mode="contained" onPress={()=> navigation.navigate('Orders')}>
+                    Ir as compras
+                </Button>
+            </View>
+            <View style={styles.row}>
+                <Button icon="account-cog" mode="contained" onPress={()=> navigation.navigate('Admin')}>
+                    Administração
+                </Button>
+            </View>
        </ScrollView>
-            // </ImageBackground>
     )
 }
