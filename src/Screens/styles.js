@@ -1,12 +1,11 @@
-import {StyleSheet, StatusBar} from 'react-native';
+import { StyleSheet, StatusBar } from 'react-native';
 
-const styles = (props) => StyleSheet.create(
+const styles = StyleSheet.create(
     {
         container:{            
             marginTop: StatusBar.currentHeight,
-            flex:1,
-            backgroundColor: props.corFundoTela,
-            justifyContent: 'flex-start',
+            flexGrow:1,
+            justifyContent: 'center',
             alignItems: 'center',
         },
         titulo:{
@@ -130,7 +129,20 @@ const styles = (props) => StyleSheet.create(
           position: 'absolute',
           right: 0,
           marginRight: 5,
-        }
+        },
+        inputContainerStyle: {
+          margin: 8,
+          backgroundColor: '#fff',
+          width: '80%',
+          borderRadius: 10
+        },
+        noPaddingInput: {
+          backgroundColor: 'transparent',
+          paddingHorizontal: 0,
+        },
+        first: {
+          flex: 2,
+        },
     }
 );
 

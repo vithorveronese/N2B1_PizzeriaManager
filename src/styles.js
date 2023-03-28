@@ -1,21 +1,27 @@
-import {StyleSheet, StatusBar} from 'react-native';
+import { StyleSheet, StatusBar } from 'react-native';
 
 const styles = StyleSheet.create(
     {
         container:{            
             marginTop: StatusBar.currentHeight,
-            flex:1,
             backgroundColor: "#FFF",
-            justifyContent: 'flex-start',
+            flex: 1,
+            justifyContent: 'center',
             alignItems: 'center',
         },
-        titulo:{
-            fontSize: 40,
-            color: 'blue',
-            fontWeight: 'bold',
-            textDecorationLine: 'underline',            
-            marginBottom: 30,
-            textAlign: 'center',
+        imgBg: {
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            top: 0,
+            left: 0
+        },
+        row: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            alignItems: 'center',
+            margin: 8,
         },
         botao:{
             height: 60,
